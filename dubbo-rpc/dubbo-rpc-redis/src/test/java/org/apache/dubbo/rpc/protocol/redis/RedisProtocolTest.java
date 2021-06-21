@@ -52,8 +52,8 @@ import static redis.embedded.RedisServer.newRedisServer;
 public class RedisProtocolTest {
 
     private static final String
-            REDIS_URL_TEMPLATE = "redis://%slocalhost:%d",
-            REDIS_PASSWORD = "123456",
+            REDIS_URL_TEMPLATE = "redis://%s172.21.193.203:%d",
+            REDIS_PASSWORD = "foobared",
             REDIS_URL_AUTH_SECTION = "username:" + REDIS_PASSWORD + "@";
 
     private static final Protocol PROTOCOL = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
@@ -65,30 +65,30 @@ public class RedisProtocolTest {
     @BeforeEach
     public void setUp(final TestInfo testInfo) throws IOException {
         final boolean usesAuthentication = usesAuthentication(testInfo);
-        int redisPort = 0;
-        IOException exception = null;
-
-        for (int i = 0; i < 10; i++) {
-            try {
-                redisPort = NetUtils.getAvailablePort(30000 + new Random().nextInt(10000));
-                redisServer = newRedisServer()
-                        .port(redisPort)
-                        // set maxheap to fix Windows error 0x70 while starting redis
-                        .settingIf(SystemUtils.IS_OS_WINDOWS, "maxheap 128mb")
-                        .settingIf(usesAuthentication, "requirepass " + REDIS_PASSWORD)
-                        .build();
-                this.redisServer.start();
-                exception = null;
-            } catch (IOException e) {
-                e.printStackTrace();
-                exception = e;
-            }
-            if (exception == null) {
-                break;
-            }
-        }
-
-        Assertions.assertNull(exception);
+        int redisPort = 6379;
+//        IOException exception = null;
+//
+//        for (int i = 0; i < 10; i++) {
+//            try {
+//                redisPort = NetUtils.getAvailablePort(30000 + new Random().nextInt(10000));
+//                redisServer = newRedisServer()
+//                        .port(redisPort)
+//                        // set maxheap to fix Windows error 0x70 while starting redis
+//                        .settingIf(SystemUtils.IS_OS_WINDOWS, "maxheap 128mb")
+//                        .settingIf(usesAuthentication, "requirepass " + REDIS_PASSWORD)
+//                        .build();
+//                this.redisServer.start();
+//                exception = null;
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                exception = e;
+//            }
+//            if (exception == null) {
+//                break;
+//            }
+//        }
+//
+//        Assertions.assertNull(exception);
         registryUrl = newRedisUrl(usesAuthentication, redisPort);
     }
 
@@ -96,13 +96,14 @@ public class RedisProtocolTest {
         final String methodName = testInfo.getTestMethod().get().getName();
         return "testAuthRedis".equals(methodName) || "testWrongAuthRedis".equals(methodName);
     }
+
     private static URL newRedisUrl(final boolean usesAuthentication, final int redisPort) {
         final String urlAuthSection = usesAuthentication ? REDIS_URL_AUTH_SECTION : "";
         final String urlSuffix = usesAuthentication ? "?db.index=0" : "";
         return URL.valueOf(String.format(REDIS_URL_TEMPLATE, urlAuthSection, redisPort) + urlSuffix);
     }
 
-    @AfterEach
+//    @AfterEach
     public void tearDown() throws IOException {
         this.redisServer.stop();
     }
